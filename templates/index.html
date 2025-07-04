@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CodeBox AI</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/htmlmixed/htmlmixed.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+  <style>
+    body, html { margin:0; height:100%; display:flex; }
+    #editor { width:50%; height:100vh; }
+    #output { width:50%; height:100vh; border:none; }
+    .controls { position:absolute; top:10px; left:10px; z-index:10; }
+  </style>
+</head>
+<body>
+  <div id="editor"></div>
+  <iframe id="output"></iframe>
+  <div class="controls">
+    <button onclick="runCode()">🚀 Run</button>
+    <button onclick="aiHelp()">🤖 AI Help</button>
+    <button onclick="exportCode()">💾 Export</button>
+  </div>
+<script>
+const editor = CodeMirror(document.getElementById("editor"), {
+  value: "<!DOCTYPE html>\n<html><body><h1>Hello World</h1></body></html>",
+  mode: "htmlmixed", lineNumbers: true
+});
+function runCode() {
+  document.getElementById("output").srcdoc = editor.getValue();
+}
+async function aiHelp() {
+  const promptText = prompt("AI से पूछिए:");
+  if (!promptText) return;
+  const res = await fetch("/ai_help", {
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({prompt: promptText})
+  });
+  const data = await res.json();
+  editor.setValue(editor.getValue() + "\n\n<!-- AI Suggestion:\n" + data.code_suggestion + "\n-->\n");
+}
+function exportCode() {
+  const blob = new Blob([editor.getValue()], {type:'text/html'});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "code.html";
+  a.click();
+}
+</script>
+</body>
+</html>
